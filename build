@@ -24,7 +24,7 @@ echo -ne \
 	> $PROJECT_DIR/Control.url
 
 echo -ne \
-	"[InternetShortcut]\r\nURL=https://github.com/yanorei32/se-player/blob/master/README.md" \
+	"[InternetShortcut]\r\nURL=https://github.com/yanorei32/se-player/blob/main/README.md" \
 	> $PROJECT_DIR/README.url
 
 cp ./LICENSE $PROJECT_DIR/
