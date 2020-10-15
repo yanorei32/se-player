@@ -1,0 +1,65 @@
+<!DOCTYPE HTML>
+<html lang=en>
+	<head>
+		<meta charset=utf-8>
+		<title>SE Player - Player</title>
+	</head>
+	<body>
+		<p id=cError style=color:red;>Connection Error</p>
+		<script>
+			const audios = {};
+			const audioCtx = new AudioContext();
+			const cErrorE = document.getElementById('cError');
+
+			const wsConnection = () => {
+				const conn = new WebSocket(`ws://${document.location.host}/ws`);
+
+				conn.addEventListener('message', (e) => {
+					if (e.data == '/stopall') {
+						for (let [_, audio] of Object.entries(audios))
+							audio.pause();
+						return;
+					}
+
+					if (!audios[e.data]) {
+						audios[e.data] = new Audio();
+						audios[e.data].src = `se/${e.data}`;
+					}
+
+					audios[e.data].currentTime = 0;
+					audios[e.data].play();
+				});
+
+				conn.addEventListener('close', (e) => {
+					cErrorE.style.display = 'block';
+					setTimeout(wsConnection, 1000);
+				});
+
+				conn.addEventListener('open', (e) => {
+					cErrorE.style.display = 'none';
+				});
+			};
+
+			wsConnection();
+
+			const update = () => {
+				fetch('/api/ls')
+					.then(resp => resp.json())
+					.then((json) => {
+						const seListE = document.getElementById('seList');
+
+						for (const f of json) {
+							if (audios[f]) continue;
+							audios[f] = new Audio();
+							audios[f].src = `se/${f}`;
+							audios[f].preload = 'auto';
+						}
+					});
+			};
+
+			setInterval(update, 1000);
+		</script>
+	</body>
+</html>
+
+

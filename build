@@ -1,0 +1,39 @@
+#!/bin/bash
+
+set -xe
+
+readonly PROJECT_NAME=se-player
+readonly PROJECT_DIR=$PROJECT_NAME-release
+
+if [[ -d $PROJECT_DIR ]]; then
+	rm -r $PROJECT_DIR
+fi
+
+mkdir -p $PROJECT_DIR
+
+function build() {
+	go build -o $1
+}
+
+GOARCH=amd64 GOOS=darwin build $PROJECT_DIR/se-player.macho
+GOARCH=amd64 GOOS=linux build $PROJECT_DIR/se-player.elf
+GOARCH=amd64 GOOS=windows build $PROJECT_DIR/se-player.exe
+
+echo -ne \
+	"[InternetShortcut]\r\nURL=http://127.0.0.1:3000/control.html" \
+	> $PROJECT_DIR/Control.url
+
+echo -ne \
+	"[InternetShortcut]\r\nURL=https://github.com/yanorei32/se-player/blob/master/README.md" \
+	> $PROJECT_DIR/README.url
+
+cp ./LICENSE $PROJECT_DIR/
+cp ./CREDITS $PROJECT_DIR/
+cp -r ./contents $PROJECT_DIR/
+
+if [[ -f $PROJECT_DIR.zip ]]; then
+	rm $PROJECT_DIR.zip
+fi
+
+zip $PROJECT_DIR.zip -r $PROJECT_DIR
+

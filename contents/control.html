@@ -1,0 +1,67 @@
+<!DOCTYPE HTML>
+<html lang=en>
+	<head>
+		<meta charset=utf-8>
+		<title>SE Player - Control</title>
+	</head>
+	<body>
+		<h1>SE Player - Control</h1>
+		<p id=cError style=color:red;>Connection Error</p>
+		<p>Please put audio file(s) to contents/se</p>
+		<input type=button onclick='conn.send("/stopall")' value='STOP ALL'>
+		<input type=button onclick='update()' value='Update'>
+		<input type=button onclick='playHere(this)' value='Play at HERE'>
+		<div id=seList>
+		</div>
+
+		<script>
+			const cErrorE = document.getElementById('cError');
+
+			let conn;
+			const wsConnection = () => {
+				conn = new WebSocket(`ws://${document.location.host}/ws`);
+
+				conn.addEventListener('close', (e) => {
+					cErrorE.style.display = 'block';
+					setTimeout(wsConnection, 1000);
+				});
+
+				conn.addEventListener('open', (e) => {
+					cErrorE.style.display = 'none';
+				});
+			};
+
+			wsConnection();
+
+			const files = {};
+			const update = () => {
+				fetch('/api/ls')
+					.then(resp => resp.json())
+					.then((json) => {
+						const seListE = document.getElementById('seList');
+
+						for (const f of json) {
+							if (files[f]) continue;
+							const b = document.createElement('input');
+							files[f] = true;
+							b.type = 'button';
+							b.value = f;
+							b.addEventListener('click', () => { conn.send(b.value); });
+							seListE.appendChild(b);
+						}
+					});
+			};
+			update()
+
+			const playHere = (e) => {
+				e.style.display = 'none';
+				const iframe = document.createElement('iframe');
+				iframe.src = 'player.html';
+				iframe.style.display = 'none';
+				document.body.appendChild(iframe);
+			};
+		</script>
+	</body>
+</html>
+
+
